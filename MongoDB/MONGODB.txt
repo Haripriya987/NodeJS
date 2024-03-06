@@ -1,0 +1,153 @@
+To create a collection in DB 
+->  db.createCollection("Name");
+To switch to particular DB 
+-> use dbname
+To Drop a particular DB 
+-> db.dropDatabase()
+To see all existing DBs
+-> show dbs
+To insert document(record) in Mongodb
+-> db.students.insertOne({name:"priya",age:20,gpa:9.7})
+To show all documents in collection 
+->db.students.find()
+To insert multiple documents in collection
+->db.students.insertMany([{name:"John",age:38,gpa:8.9},{name:"Adam",age:28,gpa:6.7}])
+
+//Data Types:
+String : series of text
+Integer: whole numbers
+Double:It contains decimal point numbers
+booleans: True or false
+DateObjects:new Date() =>It creates current date
+	   new Date("2024-03-03T00:00:00") 
+null =>no value (It is just create placeholder that filled in later)
+Arrays => fileds that contain more than one one value
+
+db.students.insertOne({name:"Mary",
+age:32,
+gpa:7.8,
+fullTime:false,
+registerDate:new Date(),
+graduationDate:null,
+courses:["Biology,"chemistry","zoology"],
+address:{street:" 123 FakeSt",		
+	city:"new city" ,
+	zipcode:555555}  //nested Document
+})
+
+Sort the data in db :
+db.students.find().sort({name:1})
+//Here sort will take a filed based on which one we have to sort 
+Asc  => 1
+Desc => -1
+
+Sorting based on GPA (ASC)
+//db.students.find().sort({gpa:1})
+
+*Default documents are sorted based on ASC order 
+
+//We can also limit the no of outcomes
+
+//db.students.find().sort({gpa:-1}).limit(2)
+Sorting in  desc order based on gpa and showing only 2 documents since limit is 2
+
+
+//To show all documents 
+db.students.find()
+
+//For specific arguments
+
+db.students.find({query}{projection})
+query parameter = >selection filters
+It is similar to where class in sql .we can use for more than one filter
+
+projectionParameter = >we can return specific filelds
+
+
+db.students.find({name:"spongebob"})
+db.students.find({fulltime:false})
+db.students.find({gpa:6.7})
+db.students.find({gpa:8,fullTime:true})
+
+
+db.students.find({},{name:true})
+db.students.find({},{name:true,_id:false,gpa:true})
+If we want to display that field kept true .If we do not want to include then kept false.
+
+db.students.find({},{name:true,_id:false,gpa:true}).limit(2)
+
+
+//Update Documents
+//By using update one .We can only update one document
+
+db.students.updateOne(filter,update)
+filter => selection criteria 
+update => we can set and remove the fields for the documents
+
+//Here we are setting a new field fulltime using set operator.If already exists it will change value.
+db.students.updateOne({name:"spongebob"),{$set:{fulltime:true}}}
+ 
+//Here we are removing the field that already existing . By using unset operator
+db.students.updateOne({name:"spongebob"},{$unset:{fullTime:""}})
+db.students.updateOne({name:"Adam"},{$unset:{fullTime:""}})
+
+//If we want to update multiple documents .we have to use updateMany
+db.students.updateMany({},{$set:{fullTime:false}})
+
+//we can check whether the field exists or not in selection criteria 
+db.students.updateMany({fullTime:{$exists:false}},{$set:{fullTime:true}})
+Here selection criteria is fulltime (we are selecting the documents that does not have fullTime field).
+ For them we are setting fullTime Field is True.
+
+
+//How to Delete Documents
+
+To delete a single document
+//db.students.deleteOne({name:"Mary"})
+
+To delete more than one document 
+//db.students.deleteMany({fullTime:false})
+
+//db.students.deleteMany({registerDate:{$exists:false}})
+
+Comparison Query Operators :
+Comparison operators return data based on value comparisons
+
+//db.students.find({name:{$ne:"spongebob"}})
+Here we get all the documents except document with  specified name
+
+$ne => not equal to 
+$lte => less than or equal to
+$lt  => less than
+
+db.students.find({gpa:{$gte:7,$lte:8}})  
+db.students.find({name:{$in:["spongebob","patrick","sandy"]}})
+db.students.find({name:{$nin:["spongebob","patrick","sandy"]}})
+//Here return the documents which are not present in this name field
+
+Logical Query Operators :
+Logical Operators return data based o expressions that evaluate to true or false.
+
+$and :Joins query clauses with a logical AND return all documents that match conditions of both lauses
+$not :Inverts the effect of a query expression and returns documents  that do not match the query expression. 
+$nor : Joins query clauses with a logical NOR returns all documents that fail to match both the clauses
+$or   :Joins query clauses with a logical OR returns all documents that match the conditions of either clause.
+
+//Using and
+db.students.find({$and:[{fullTime:true},{age:{$lte:32}}]})
+Both conditions to be satisfied
+
+//Using or
+db.students.find({$or:[{fullTime:true},{age:{$lte:32}}]})
+Any one of the condition is satisfied
+
+//Using nor
+db.students.find({$nor:[{fullTime:true},{age:{$lte:32}}]})
+Both conditions not to satisfy.
+
+//Using Not
+db.students.find({age:{$not:{$gte:30}}})
+db.students.find({age:{$not:{$lte:30}}})
+
+Indexes :
+Indexes support the efficient execution of queries in MongoDB.
