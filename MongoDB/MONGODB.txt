@@ -149,5 +149,60 @@ Both conditions not to satisfy.
 db.students.find({age:{$not:{$gte:30}}})
 db.students.find({age:{$not:{$lte:30}}})
 
+Update Operators : 
+The following operators can be used to update fields :
+$currentDate: 
+$inc
+$rename:
+$set
+$unset
+
+
 Indexes :
 Indexes support the efficient execution of queries in MongoDB.
+Without indexes ,MongoDB must perform a collection scan and select those documents that match the query statement.
+If indexes exist .It limit the number of documents it must inspect.
+
+//creating index
+db.students.createIndex({name:1})
+db.students.createIndex({name:1,age:1})
+
+we are creating index for name field in ASC order.
+
+//Command used to get the existing indexes 
+db.students.getIndexes()
+
+//Command to drop indexes
+db.students.dropIndex("name_1")
+
+Indexes used in scenario where we are  doing searching more rather than inserting .
+Because it take memore space and decrease the performance when inserting and updating.
+Types of Indexes :
+SingleField
+Compound Index(Holds a reference to multiple fields)
+MultiKey Index
+
+Collections => Group of Documents 
+Database => Group of collections
+
+ db.createCollection("teachers",{capped:true,size:10000000,max:100},{autoOndexId:false})
+//Here for the collection we are setting max size as well as  100 documents at the time of creating collection.
+
+
+Aggregation PipeLines:
+1)$match 
+db.sales.aggregate({$group:{_id:"$purchaseMethod"}})
+Here we are grouping based on purchase Method
+2)$project ,$limit
+db.sales.aggregate([{$project:{"customer":1}},{$limit:5}])
+3)$sort
+db.sales.aggregate([{$sort:{"storeLocation":-1}},{$project:{"customer":1,"storeLocation":1}},{$limit:5}])
+4)$count
+inventory> db.sales.aggregate([{$match:{purchaseMethod:"Online"}},{$count:"OnlineMembers"}])
+[ { OnlineMembers: 1585 } ]
+inventory> db.sales.aggregate([{$match:{purchaseMethod:"Phone"}},{$count:"PhoneMembers"}])
+[ { PhoneMembers: 596 } ]
+inventory> db.sales.aggregate([{$match:{purchaseMethod:"In store"}},{$count:"Store"}])
+[ { Store: 2819 } ]
+
+
