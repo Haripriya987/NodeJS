@@ -1,0 +1,63 @@
+NodeJS :
+1.Superfast and Highly Scalable
+2.javascript Everywhere
+3.Consistent and clean codebase
+4.Huge Community Support
+5.Large Ecosystem of Open Source Libs (NPM)
+
+Features of Node.js :
+
+1.Single-Threaded
+2.Asynchronous
+3.Event Driven
+4.NPM
+5.Highly Scalable
+6.Performance(c++ and v8 Engine)
+
+There is no window object in nodejs
+
+let name = "Name";
+console.log(global.name);//get as undefined
+This is because modular system of Node JS
+
+//Node Js kept its variables in file scope only
+//In NodeJs every file is treated as a module.
+
+//Child process is a node module used to create sub proccess within a script.
+//you can perform different tasks with your script by just using some methods.
+
+
+NPM => Node Package Manager
+ 
+It is like a playstore.where we can have third party packages can use to build our applications .It is an opensource . we can make our own packages also .
+
+We have to create package.json
+npm init  -> To initialize application and create package.json file.
+
+//Publishing own npm package :
+npm init
+create account  : npm adduser
+username :
+password :
+email :
+Login account : npm login
+
+publish package  :npm publish
+
+
+
+//Express JS :
+It is a framework .it will be using with node .
+Features of ExpressJs :
+1.fast and Robust applications (Talking about time)
+when we use node we have to do configure and with so many things only using with Node .Express is here to remove all configurations and to remove boilerplates  . to build scalable applications .
+2.Middlewares :some piece of code  to interact with  client request and handles that request .Express allows to write middlewares.
+3.Routing : To handle requests like (get,post,put)  ,to put data all these things will take care by expressJS
+
+Aynchronous JS :
+Synchronous means : One thing at a time.
+Synchronous programming means it will use a single thread , so only one operation or program will run at a time .
+Sync is blocking - It will send the server one request at a time and will wait for that request to be answered by the server .
+Asynchronous is non blocking , which means it will send multiple requests to a server at a time. 
+Async increases throughput because multiple operations can run at same time.
+
