@@ -1,11 +1,22 @@
-//module for login messages .we can use in different parts of application
+//module for login messages
+const EventEmitter = require("events");
+// const emitter = new EventEmitter();
+
 var url = "http://mylogger.io/log";
-function log(message) {
-  //send an HTTP request
-  console.log(message);
+
+class Logger extends EventEmitter {
+  log(message) {
+    //send an HTTP request
+    console.log(message);
+
+    //Raise an event
+    this.emit("messageLogged", { id: 1, url: "http://" });
+  }
 }
 
-module.exports = log;
+module.exports = Logger;
+
+//module.exports = log;
 //we are exporting only function
 
 //module.exports.log = log;
