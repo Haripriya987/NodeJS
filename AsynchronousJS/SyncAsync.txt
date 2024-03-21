@@ -1,0 +1,318 @@
+Synchronous Programming (Blocking)
+
+ASynchronous Programming (Non-Blocking)
+Asynchronous does not mean concurrent (or) multi threaded.
+
+console.log("Before");
+const user = getUser(2);
+console.log(user);
+console.log("After");
+
+function getUser(id) {
+  setTimeout(() => {
+    console.log("Reading a user from DB ....");
+    return { id: id, gitUserName: "priya" };
+  }, 2000);
+  // return 1;
+}
+
+If we run this we get user as : undefined 
+The reason for this is because this function that we pass setTimeout is executed 2 sec after .So what we are returning from this function will not be available at a time of calling getUser .
+Because we are calling setTime out to schedule a task for future. 
+
+How can we acess this userObject in main program.
+There are 3 patterns to deal with asynchronous code :
+1.callbacks
+2.promises
+3.async/await
+
+
+Call Backs :
+Using a callback to get the user object.
+A callback is a function that we are going to call when the result of an asynchronous operation is ready .
+
+console.log("Before");
+getUser(2,  (user)=> { 
+//when async function result is ready it will call this function
+  console.log("User : ", user);
+});
+console.log("After");
+
+//Now it is asynchronous function that takes callback to return the result.
+function getUser(id, callback) {  
+//Here we are adding another parameter called callback 
+  setTimeout(() => {
+    console.log("Reading a user from DB ....");
+    callback({ id: id, gitUserName: "priya" }); //This will call with the object
+  }, 2000);
+}
+
+
+//////////////////////////////////////////////
+
+console.log("Before");
+getUser(2, (user) => {
+//Here call back function takes an argument which is array of strings.
+  getRepositories(user.gitUserName, function (repos) {
+    console.log("Repos : ", repos);
+  });
+});
+console.log("After");
+
+function getUser(id, callback) {
+  setTimeout(() => {
+    console.log("Reading a user from DB ....");
+    callback({ id: id, gitUserName: "priya" });
+  }, 2000);
+}
+
+function getRepositories(username, callback) {
+  setTimeout(() => {
+    console.log("calling Github api...");
+    callback(["repo1", "repo2", "repo3"]);
+  }, 2000);
+}
+
+
+/////////////////////////////////////////
+
+Callback Hell :
+
+
+//Asynchronous
+console.log("before")
+getUser(2, (user) => {
+  getRepositories(user.gitUserName, function (repos) {
+    getCommits(repo, (commits) => {
+      //callback Hell
+    
+   //It is a nested structure .With this callback the code will endup like this
+    });
+  });
+});
+console.log("After");
+
+//Synchronous 
+
+console.log("before");
+const user = getUser(1);
+const repos = getRepositories(user.gitUserName);
+const commits = getCommits(repos[0]);
+
+console.log("after");
+
+
+Synchronous implementation is far easier to read and understand.
+With asynchronus implementaion due to callbacks it forms nested like structure.In real world application it is even worse 
+"Call back hell" ,"Christmas tree Problem"
+
+
+To get rid of this callback hell .We can replace each annonymous function with named functions
+
+Annonymous function : That does not have a name.
+
+//Here we are resolving that nested structure .
+
+console.log("Before");
+getUser(2, getRepositories);
+console.log("After");
+
+function getRepositories(user) {
+  getRepositories(user.gitUsername, getCommits);
+}
+
+function getCommits(repos) {
+  getCommits(repos, displayCommits);
+}
+
+function displayCommits(commits) {
+  console.log(commits);
+}
+
+It is not an ideal but better than callback hell.
+
+Promises : 
+These are extremely powerful to deal with asynchronous code,
+A promise is  an object that holds the eventual result of an asynchronous operation .
+whenever an asynchronous operation completes it can either result a value or an error .A promise will promises it will give result of an asynchronous operation .
+Intially when we create an promise object it will be in pending state.It will take an async operation then it is fulfilled it holds a value.Or else it will be in rejected state.
+
+Pending state --async operation -- >  fulfilled or rejected.
+(promise)
+
+//sample Demonstration
+
+//creatimg a promise
+const p = new Promise((resolve, reject) => {
+  //some async work
+  //.....
+  setTimeout(() => {
+    // resolve(1)   //pending =>resolved,fulfilled
+    reject(new Error("something went wrong")); //pending =>rejected
+  }, 2000);
+});
+
+//consuming a promise
+p.then((result) => console.log(result)) //then for result
+  .catch(
+    (err) => console.log("Error : ", err.message) //catch for error
+  );
+
+//Takeaway:Anywhere we have asynchronous function that takes a callback modify the function to return promise
+
+
+Replacing callbacks with promises:
+
+console.log("Before");
+// const p = getUser(2);
+// p.then((user) => console.log(user));
+
+getUser(2)
+  .then((user) => getRepositories(user.githubUserName))
+  .then((repos) => getCommits(repos))
+  .then((commits) => console.log(commits))
+.catch(err=>console.log('Error' ,err.message));
+
+
+console.log("after");
+
+function getUser(id) {
+  return new Promise((resolve, reject) => {
+    //async work
+    setTimeout(() => {
+      console.log("Reading a user from DB ....");
+      resolve({ id: id, gitUserName: "priya" });
+    }, 2000);
+  });
+}
+
+function getRepositories(username) {
+  return new Promise((resolve, reject) => {
+    //async work
+    setTimeout(() => {
+      console.log("calling Github api...");
+      resolve(["repo1", "repo2", "repo3"]);
+    }, 2000);
+  });
+}
+
+function getCommits(repos) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log("get commits..");
+      resolve(repos.map((repo) => `${repo}: commit1, commit2`));
+    }, 2000);
+  });
+}
+
+Promises expose then method we can chain them to implement a complex asynchrous operation.
+
+
+
+//Creating settled promises:
+
+Some times we have to create a promise that is already resolved.
+Particularly useful in unit testing.
+
+const p = Promise.resolve({ id: 2 });
+p.then((result) => console.log(result));
+
+const p = Promise.reject(new Error("something went wrong"));
+p.catch((err) => console.log(err));
+
+
+//Running Parallel Promises:
+const p1=new Promise((resolve,reject) => {
+setTimeout(()=>{
+console.log('Async operation 1...');
+resolve(1);
+//reject(new Error("Because something failed"));
+},2000)
+});
+
+const p2=new Promise((resolve) => {
+setTimeout(() => {
+console.log("Async operation 2...);
+resolve(2);
+},2000);
+})
+
+
+Promise.all([p1,p2])  
+.then(result => console.log(result))
+.catch(err => console.log('Error',err.message));
+
+Promise.race([p1,p2])  //If one of the operation is fulfilled then it will stop.
+.then(result => console.log(result))
+.catch(err => console.log('Error',err.message));
+
+
+//////Async and Await :///////
+Async and await helps to write asynchronous code to synchronous code.
+
+-> Anytime we call a function that returns a promise we have to await it.
+-> whenever we use await operator in a function .we need to declare that function with async modifier.
+->  async and await are built on top of the promises .They are syntactically
+sugars in language allows us to write asynchronus code that looks synchronously .It does not execute synchronously.
+* when we are awaiting the result it does not waiting or blocking .
+-> The way we  handles the error is using try catch block.
+we wrap asynchronous code in try block. if anything goes wrong catch block is executed.
+
+
+console.log("before");
+async function displayCommits() {
+  try {
+    const user = await getUser(2);
+    const repos = await getRepositories(user.gitUserName);
+    const commits = await getCommits(repos);
+    console.log(commits);
+  } catch (err) {
+    console.log(err);
+  }
+}
+displayCommits();
+console.log("after");
+
+function getUser(id) {
+  return new Promise((resolve, reject) => {
+    //async work
+    setTimeout(() => {
+      console.log("Reading a user from DB ....");
+      resolve({ id: id, gitUserName: "priya" });
+    }, 2000);
+  });
+}
+
+function getRepositories(username) {
+  return new Promise((resolve, reject) => {
+    //async work
+    setTimeout(() => {
+      console.log("calling Github api...");
+      resolve(["repo1", "repo2", "repo3"]);
+      // reject(new Error("could not get"));
+    }, 2000);
+  });
+}
+
+function getCommits(repos) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log("get commits..");
+      resolve(repos.map((repo) => `${repo}: commit1, commit2`));
+    }, 2000);
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
