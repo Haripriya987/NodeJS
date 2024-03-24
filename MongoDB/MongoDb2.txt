@@ -1,0 +1,363 @@
+Mongodb is document database or nosql db. It is different from traditional db.
+In this we can simply store json objects in db. 
+
+///Connecting to MongoDB 
+1) we need to install mongoose package
+Mongoose will gives us simple api to get the data from mongodb
+
+
+//create a schema :
+we use a schema to define shape of a document in a collection in a mongodb.
+ collection => table
+ document => row or record
+It is container of key value pairs.
+_id :it is unique id for each document.
+
+we use a concept called schema in mongoose to define shape of a documents in mongodbcollection .It is for mongoose not for mongodb.
+
+const courseSchema = new mongoose.Schema({
+  name: String,
+  author: String,
+  tags: [String],
+  date: { type: Date, default: Date.now },
+  isPublished: Boolean,
+});
+
+//Schema Types :
+String
+Number
+Date
+Buffer
+Boolean
+ObjectID
+Array
+
+/////// Models ///////
+
+//Here we are compiling schema as a model .(then we get class)
+//Now we get Course class
+const Course = mongoose.model("Course", courseSchema);
+//first argument is singular name of collection this model is for.
+//second argument is shape of document in this collection
+
+async function createCourse() {
+  //creating an object based on Course class
+  //we simply create objects and store them in db.They are schemaless
+  const course = new Course({
+    //this object maps to a  document in mongodb
+    name: "Node.js Course",
+    author: "abc",
+    tags: ["node", "backend"], //array of strings
+    isPublished: true,
+  });
+
+  const result = await course.save();
+  console.log(result);
+}
+createCourse();
+
+
+//Querying a document 
+async function getCourse() {
+  const courses = await Course.find();
+  //It will return document query object like a promise.So we have to await it.
+  console.log(courses);
+}
+getCourse();
+  Here it will get all the courses .
+
+We can also add filters .we can add one or more key value pairs .
+ const courses = await Course.find({author:'abc',isPublished:true});
+with this filter we get the course which are satisfy that filters.
+
+we can also sort,set a limit to return the specific documents ,we can only get necessary fields.
+Based on that we can cutomize the query.
+
+async function getCourse() {
+  const courses = await Course.find({ author: "abc", isPublished: true })  //we get published courses by abc
+    .limit(1)  //limiting the documents to return
+    .sort({ name: 1 }) //sorting based on name . 1=>asc and -1=> desc
+    .select({ name: 1, tags: 1 }); //selecting specific properties to display
+  //It will return document query object like a promise.So we have to await it.
+  console.log(courses);
+}
+getCourse();
+
+
+//Comparison query operator 
+ eq=>equal
+ne=>not equal
+gt =>greater than 
+gte => greater than or equal to
+lt  => less than
+lte =>less tahn or equal to
+in
+nin 
+
+const course =await Course
+//.find({price : {$gte:10,$lte:20}})
+//.find({price:{$in:[10,15,20]}})
+
+Logical Query operator :
+or
+and
+
+const course =await Course.find()
+//.or([{author:'abc'},{isPublished:true}])  //Array of filter objects
+.and([{author:'abc'},{isPublished:true}])
+
+
+///Regex 
+^ => starts with
+$ => end with
+
+//starts with john
+.find({author: /pattern/})  =>.find({author: /^john/})
+
+//end with john
+.find({author :/john$/i})  => if we add i it is case insensitive
+
+//contains word john
+.find({author: /.*john.*/})  => Here .* means we have zero or more charcters before or after that word.
+
+
+Pagination :
+
+cosnt pageNumber=2;
+const pageSize=10;
+//In real world application we pass this value as query strings parameters for restful api.
+// /api/courses?pageNumber=2&pageSize=10;
+
+
+async function getCourse() {
+  const courses = await Course.find({ author: "abc", isPublished: true }) //.find({price : {$gte:10,$lte:20}})
+    //.find({price:{$in:[10,15,20]}})
+   .skip((pageNumber-1)*pageSize)  //pagination
+    .limit(pageSize)
+    .sort({ name: 1 })
+    .select({ name: 1, tags: 1 });
+  // .count();
+  //It will return document query object like a promise.So we have to await it.
+  console.log(courses);
+}
+getCourse();
+
+
+Some exercise :
+//getting all published courses wiith tags backend and sorting in asc bassed on their name
+async function getCourses() {
+  const courses = await Course.find({ isPublished: true, tags: "backend" })
+    .sort({ name: 1 })
+    .select({ name: 1, author: 1 });
+  return courses;
+}
+
+// getting all the published courses either frontend or backend present in tags and sorting based on price in desc
+async function getCourses2() {
+  return await Course.find({
+    isPublished: true,
+    tags: { $in: ["frontend", "backend"] },
+  })
+    // .and([{ tags: "frontend" }, { tags: "backend" }])
+    .sort({ price: -1 })
+    .select({ name: 1, author: 1, price: 1 });
+}
+
+//get all published courses greater than or equal to 15 or by is present in name
+async function getCourses3() {
+  return await Course.find({ isPublished: true })
+    .or([{ price: { $gte: 15 } }, { name: /.*by.*/i }])
+    .count();
+}
+
+async function run() {
+  const courses = await getCourses3();
+  console.log(courses);
+}
+run();
+
+
+Updating the documents :
+There are two approaches
+1) 
+//Approach : Query find
+async function updateCourse(id) {
+//findById()
+  const course = await Course.findById(id);
+  if (!course) return;
+  // course.isPublished = true;
+  // course.author = "Another";
+  //modify its properties
+  course.set({
+    isPublished: true,
+    author: "Another",
+  });
+  //save()
+  const res = await course.save();
+  console.log(res);
+}
+updateCourse("5a68fde3f09ad7646ddec17e");
+
+  
+
+
+2)//Approach:update first
+  //update directly
+  //optionally : get the updated documents
+
+
+
+
+Validators :
+
+By default all the properties are optional.
+In traditional dbs we implement validation at database level . Mongodb does not care this . But here this validation can be implemented at the mongoose level is meaningful. 
+we use joi in restful api to make sure that the data client is sending valid data .
+But it also important  because the data we saved in data base in right shape.
+By enforcing validation in mongoose  we can  ensure that programming errors would not result invalid documents to be persisted in mongodb.
+
+Built in Validators :
+{required:true}
+ for this we can set the simple boolean . (or) function that conditionally make a property required.
+
+//Here we have to set price when the course is Published.
+price:{
+type:Number ,  
+required : function(){return this.isPublished;}
+ //In this case arrow functions will not work
+}}
+
+minlength :5
+maxlength:255
+//match : /pattern/
+
+category:{
+type:String,
+required:true,
+enum : ['web','mobile','network']
+}
+
+required can be used for  all
+Validators for Strings :  minlength ,maxlength , match ,enum 
+Numbers : min,max
+Dates :min,max
+
+Custom Validators :
+Some times builtin validators in mongoose dont give us the  validation we need . 
+If we use required we can simply empty array also not a issue it is perfectly valid. 
+But here we have to use custom validator.
+Ex : Every course should have atleast one tag 
+tags : [String]
+Now we use custom validator for this
+tags :{
+type:Array ,
+validate :{
+validator :function(v){
+return v &v.length>0;
+},
+message : 'A course should have atleast one tag'
+}
+}
+
+
+//Async Validators :
+Sometimes a validation logic may involve reading something from a data base or from a remote http service .
+In that case we need async validator .
+
+  tags: {
+    type: Array,
+    //custom validator .
+    //se validate property to an object
+    validate: {
+      isAsync: true,
+      validator: function (v, callback) {
+        setTimeout(() => {
+          //Do some async work
+          const result = v && v.length > 0;
+          callback(result);
+        }, 4000);
+      },
+      message: "A course should have atleast one tag", //custom message
+    },
+  },
+
+Validation errors :
+upto now it is showing simple  message about validation errors.
+Now we are doing it by error object.
+
+Here we have two erros one is category and tags.
+  const course = new Course({
+    //this object maps to a  document in mongodb
+    name: "DBMS fundamentals",
+    category: "D",
+    author: "xyz",
+    tags: [], //array of strings
+    isPublished: true,
+    price: 15,
+  });
+
+ try {
+    const result = await course.save();
+    console.log(result);
+  } catch (ex) {
+    for (field in ex.errors) {
+      console.log(ex.errors[field].message); //we get details about validation 
+    }						errors.
+  }
+
+
+Schema type Options : 
+lowercase :true  //with this it can store in lowercase type
+uppercase:true
+trim :true  //remove the paddings
+ get: (v) => Math.round(v),    //For getting a value
+ set: (v) => Math.round(v), 
+
+//MODELLING RELATIONS :
+
+Upto now we have seen single self contained documents .
+we are dealing with related objects here .
+
+Trade off between query performance vs consistency.
+
+Using References (Normalization)
+-> Consistency 
+we need to do extra query to load a related author .
+separate collection for authors
+let author={
+name: 'Priya'
+}
+
+separate collection for courses . Id of authors  is taken reference . 
+
+let course={
+author : 'id'
+}
+
+Using Embedded Documents(Denormalization)
+-> Performance
+Here we  no need to do additional query .Some times leads to inconsistent data .
+
+ In this we have embedded author document inside course .
+let course={
+author: {
+name :'priya'
+  }
+}
+
+Another way is Hybrid approach
+//This is useful if we want to have snap shot of data at a particular point of time.
+
+let author={
+name : 'priya'
+//50 other properties
+} 
+
+let course= {
+author : {
+id:'ref',
+name : 'priya'
+}
+}
+
+Base on the Application we need to decide.
